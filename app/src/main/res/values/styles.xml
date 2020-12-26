@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="ShapeAppearance.Neumorph.CalcButton" parent="">
+        <item name="neumorph_cornerFamily">rounded</item>
+        <item name="neumorph_cornerSize">20dp</item>
+    </style>
+
+    <style name="Widget.Neumorph.CalcButton" parent="Widget.AppCompat.Button">
+        <item name="android:textAppearance">?android:attr/textAppearanceButton</item>
+        <item name="android:minHeight">100dip</item>
+        <item name="android:minWidth">100dip</item>
+        <item name="android:paddingLeft">@dimen/design_btn_padding_left</item>
+        <item name="android:paddingRight">@dimen/design_btn_padding_right</item>
+        <item name="android:paddingTop">@dimen/design_btn_padding_top</item>
+        <item name="android:paddingBottom">@dimen/design_btn_padding_bottom</item>
+        <item name="android:stateListAnimator">@animator/button_state_list_anim_neumorph</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:gravity">center_vertical|center_horizontal</item>
+        <item name="neumorph_inset">@dimen/design_default_inset</item>
+        <item name="neumorph_shadowElevation">5dp</item>
+        <item name="neumorph_shadowColorLight">#F2FFFFFF</item>
+        <item name="neumorph_shadowColorDark">#0F3754AA</item>
+        <item name="neumorph_shapeType">flat</item>
+        <item name="neumorph_shapeAppearance">@style/ShapeAppearance.Neumorph.CalcButton</item>
+    </style>
+
+    <style name="Widget.Neumorph.WhiteButton" parent="Widget.Neumorph.CalcButton">
+        <item name="neumorph_backgroundColor">#F1F3F6</item>
+        <item name="android:textColor">#3A4E89</item>
+    </style>
+
+    <style name="Widget.Neumorph.BlueButton" parent="Widget.Neumorph.CalcButton">
+        <item name="neumorph_backgroundColor">#3A4E89</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+</resources>
