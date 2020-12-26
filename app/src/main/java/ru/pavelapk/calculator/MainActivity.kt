@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
     fun onDigitClick(v: View) {
         v as Button
-        if (currentNumber.length < 11) {
+        if (currentNumber.length < 10) {
             when (v.text) {
                 "," -> {
                     if (!isComma) {
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
     private fun chooseOperation(o: CharSequence) = when (o) {
         "+" -> '+'
         "-" -> '-'
-        "X" -> '*'
+        "x" -> '*'
         "÷" -> '/'
         else -> 0.toChar()
     }
@@ -104,36 +104,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setTextNumWithOper() {
+    private fun printNumWithOper() {
         tv_numbers.text =
             decimalFormat.format(firstNumber) + operation
+    }
+
+    private fun printNum() {
+        currentNumber = decimalFormat.format(firstNumber)
+        if (currentNumber.length > 10) {
+            clear()
+            tv_numbers.text = getString(R.string.error)
+        } else {
+            tv_numbers.text = currentNumber
+        }
     }
 
     fun onOperationClick(v: View) {
         v as Button
         when (v.text) {
             "AC" -> allClear()
-            "+", "-", "X", "÷" -> {
+            "+", "-", "x", "÷" -> {
                 when (state) {
                     STATE_FIRST -> {
                         operation = chooseOperation(v.text)
                         if (currentNumber.isNotEmpty()) {
                             firstNumber = currentNumber.toDouble()
                             clear()
-                            setTextNumWithOper()
+                            printNumWithOper()
                             state = STATE_OPERATION
                         }
                     }
                     STATE_OPERATION -> {
                         operation = chooseOperation(v.text)
-                        setTextNumWithOper()
+                        printNumWithOper()
                     }
                     STATE_SECOND -> {
                         if (currentNumber.isNotEmpty()) {
                             calculate()
                             clear()
                             operation = chooseOperation(v.text)
-                            setTextNumWithOper()
+                            printNumWithOper()
                             state = STATE_OPERATION
                         }
                     }
@@ -142,14 +152,8 @@ class MainActivity : AppCompatActivity() {
             "=" -> {
                 if (currentNumber.isNotEmpty() && state == STATE_SECOND) {
                     calculate()
-                    currentNumber = decimalFormat.format(firstNumber)
-                    if (currentNumber.length > 11) {
-                        clear()
-                        tv_numbers.text = getString(R.string.error)
-                    } else {
-                        tv_numbers.text = currentNumber
-                        state = STATE_FIRST
-                    }
+                    printNum()
+                    state = STATE_FIRST
                 }
             }
             "+/-" -> {
@@ -161,14 +165,8 @@ class MainActivity : AppCompatActivity() {
             "%" -> {
                 if (currentNumber.isNotEmpty() && state == STATE_SECOND) {
                     calculateWithPercent()
-                    currentNumber = decimalFormat.format(firstNumber)
-                    if (currentNumber.length > 11) {
-                        clear()
-                        tv_numbers.text = getString(R.string.error)
-                    } else {
-                        tv_numbers.text = currentNumber
-                        state = STATE_FIRST
-                    }
+                    printNum()
+                    state = STATE_FIRST
                 }
             }
             else -> Toast.makeText(this, v.text, Toast.LENGTH_SHORT).show()
