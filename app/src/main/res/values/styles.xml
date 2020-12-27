@@ -15,6 +15,7 @@
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
+        <item name="android:lines">1</item>
         <item name="neumorph_inset">8dp</item>
         <item name="neumorph_shadowElevation">4dp</item>
         <item name="neumorph_shadowColorLight">#F2FFFFFF</item>

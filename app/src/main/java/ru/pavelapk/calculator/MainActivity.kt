@@ -8,8 +8,8 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.Group
 import androidx.core.animation.addListener
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -17,20 +17,36 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    private val STATE_FIRST = 0
-    private val STATE_OPERATION = 1
-    private val STATE_SECOND = 2
+    companion object {
+        const val STATE_FIRST = 0
+        const val STATE_OPERATION = 1
+        const val STATE_SECOND = 2
+    }
 
-    lateinit var tv_numbers: TextView
-    lateinit var iv_explosion: ImageView
-    lateinit var decimalFormat: DecimalFormat
+    private lateinit var tvNumbers: TextView
+    private lateinit var ivExplosion: ImageView
+    private lateinit var decimalFormat: DecimalFormat
+
+    private fun Group.setAllOnClickListener(listener: View.OnClickListener?) {
+        referencedIds.forEach { id ->
+            rootView.findViewById<View>(id).setOnClickListener(listener)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tv_numbers = findViewById(R.id.tv_numbers)
-        iv_explosion = findViewById(R.id.iv_explosion)
+        findViewById<Group>(R.id.groupDigits).setAllOnClickListener { v ->
+            onDigitClick(v as Button)
+        }
+
+        findViewById<Group>(R.id.groupOperations).setAllOnClickListener { v ->
+            onOperationClick(v as Button)
+        }
+
+        tvNumbers = findViewById(R.id.tv_numbers)
+        ivExplosion = findViewById(R.id.iv_explosion)
 
         val otherSymbols = DecimalFormatSymbols(Locale.getDefault())
         otherSymbols.decimalSeparator = '.'
@@ -39,14 +55,13 @@ class MainActivity : AppCompatActivity() {
 
 
     private var firstNumber = 0.0
-    private var operation: Char = 0.toChar()
+    private var operation = 0.toChar()
     private var secondNumber = 0.0
     private var currentNumber = ""
     private var isComma = false
     private var state = STATE_FIRST
 
-    fun onDigitClick(v: View) {
-        v as Button
+    private fun onDigitClick(v: Button) {
         if (currentNumber.length < 10) {
             when (v.text) {
                 "," -> {
@@ -65,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                 state = STATE_SECOND
             }
         }
-        tv_numbers.text = currentNumber
+        tvNumbers.text = currentNumber
     }
 
     private fun clear() {
@@ -78,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         firstNumber = 0.0
         secondNumber = 0.0
         state = STATE_FIRST
-        tv_numbers.text = currentNumber
+        tvNumbers.text = currentNumber
     }
 
     private fun chooseOperation(o: CharSequence) = when (o) {
@@ -116,23 +131,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun printNumWithOper() {
-        tv_numbers.text =
-            decimalFormat.format(firstNumber) + operation
+    private fun printNumWithOperation() {
+        tvNumbers.text = getString(R.string.concat, decimalFormat.format(firstNumber), operation)
     }
 
     private fun printNum() {
         currentNumber = decimalFormat.format(firstNumber)
         if (currentNumber.length > 10) {
             clear()
-            tv_numbers.text = getString(R.string.error)
+            tvNumbers.text = getString(R.string.error)
         } else {
-            tv_numbers.text = currentNumber
+            tvNumbers.text = currentNumber
         }
     }
 
-    fun onOperationClick(v: View) {
-        v as Button
+    private fun onOperationClick(v: Button) {
         when (v.text) {
             "AC" -> allClear()
             "+", "-", "x", "÷" -> {
@@ -142,20 +155,20 @@ class MainActivity : AppCompatActivity() {
                         if (currentNumber.isNotEmpty()) {
                             firstNumber = currentNumber.toDouble()
                             clear()
-                            printNumWithOper()
+                            printNumWithOperation()
                             state = STATE_OPERATION
                         }
                     }
                     STATE_OPERATION -> {
                         operation = chooseOperation(v.text)
-                        printNumWithOper()
+                        printNumWithOperation()
                     }
                     STATE_SECOND -> {
                         if (currentNumber.isNotEmpty()) {
                             calculate()
                             clear()
                             operation = chooseOperation(v.text)
-                            printNumWithOper()
+                            printNumWithOperation()
                             state = STATE_OPERATION
                         }
                     }
@@ -171,7 +184,7 @@ class MainActivity : AppCompatActivity() {
             "+/-" -> {
                 if (currentNumber.isNotEmpty()) {
                     currentNumber = decimalFormat.format(-currentNumber.toDouble())
-                    tv_numbers.text = currentNumber
+                    tvNumbers.text = currentNumber
                 }
             }
             "%" -> {
@@ -181,7 +194,6 @@ class MainActivity : AppCompatActivity() {
                     state = STATE_FIRST
                 }
             }
-            else -> Toast.makeText(this, v.text, Toast.LENGTH_SHORT).show()
         }
 
     }
@@ -192,24 +204,24 @@ class MainActivity : AppCompatActivity() {
         val mp = MediaPlayer.create(this, R.raw.explode_sound)
         mp.start()
 
-        val centerX = resources.displayMetrics.widthPixels / 2f - iv_explosion.width / 2f
-        val centerY = resources.displayMetrics.heightPixels / 2f - iv_explosion.height / 2f
+        val centerX = resources.displayMetrics.widthPixels / 2f - ivExplosion.width / 2f
+        val centerY = resources.displayMetrics.heightPixels / 2f - ivExplosion.height / 2f
 
-        val animX = ObjectAnimator.ofFloat(iv_explosion, "x", centerX)
-        val animY = ObjectAnimator.ofFloat(iv_explosion, "y", centerY)
-        val animScaleX = ObjectAnimator.ofFloat(iv_explosion, "scaleX", 12f)
-        val animScaleY = ObjectAnimator.ofFloat(iv_explosion, "scaleY", 12f)
-        val animAlphaOn = ObjectAnimator.ofFloat(iv_explosion, "alpha", 1f)
-        val animAlphaOff = ObjectAnimator.ofFloat(iv_explosion, "alpha", 0f)
+        val animX = ObjectAnimator.ofFloat(ivExplosion, "x", centerX)
+        val animY = ObjectAnimator.ofFloat(ivExplosion, "y", centerY)
+        val animScaleX = ObjectAnimator.ofFloat(ivExplosion, "scaleX", 12f)
+        val animScaleY = ObjectAnimator.ofFloat(ivExplosion, "scaleY", 12f)
+        val animAlphaOn = ObjectAnimator.ofFloat(ivExplosion, "alpha", 1f)
+        val animAlphaOff = ObjectAnimator.ofFloat(ivExplosion, "alpha", 0f)
 
         animAlphaOn.addListener(onEnd = {
             allClear()
         })
         animAlphaOff.addListener(onEnd = {
-            iv_explosion.translationX = 0f
-            iv_explosion.translationY = 0f
-            iv_explosion.scaleX = 0f
-            iv_explosion.scaleY = 0f
+            ivExplosion.translationX = 0f
+            ivExplosion.translationY = 0f
+            ivExplosion.scaleX = 0f
+            ivExplosion.scaleY = 0f
         })
 
         AnimatorSet().apply {

@@ -23,4 +23,6 @@
     <string name="nine">9</string>
     <string name="plus">+</string>
     <string name="comma">,</string>
+
+    <string name="concat">%s%s</string>
 </resources>
