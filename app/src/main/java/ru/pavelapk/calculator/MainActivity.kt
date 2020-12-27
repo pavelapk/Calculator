@@ -1,22 +1,28 @@
 package ru.pavelapk.calculator
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.animation.addListener
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    val STATE_FIRST = 0
-    val STATE_OPERATION = 1
-    val STATE_SECOND = 2
+    private val STATE_FIRST = 0
+    private val STATE_OPERATION = 1
+    private val STATE_SECOND = 2
 
     lateinit var tv_numbers: TextView
+    lateinit var iv_explosion: ImageView
     lateinit var decimalFormat: DecimalFormat
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +30,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         tv_numbers = findViewById(R.id.tv_numbers)
+        iv_explosion = findViewById(R.id.iv_explosion)
 
         val otherSymbols = DecimalFormatSymbols(Locale.getDefault())
         otherSymbols.decimalSeparator = '.'
@@ -82,8 +89,13 @@ class MainActivity : AppCompatActivity() {
         else -> 0.toChar()
     }
 
-    fun calculate() {
+    private fun calculate() {
         secondNumber = currentNumber.toDouble()
+        if (operation == '/' && secondNumber == 0.0) {
+            explode()
+            return
+        }
+
         firstNumber = when (operation) {
             '+' -> firstNumber + secondNumber
             '-' -> firstNumber - secondNumber
@@ -170,6 +182,41 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             else -> Toast.makeText(this, v.text, Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+
+    /// EXPLOSION
+    private fun explode() {
+        val mp = MediaPlayer.create(this, R.raw.explode_sound)
+        mp.start()
+
+        val centerX = resources.displayMetrics.widthPixels / 2f - iv_explosion.width / 2f
+        val centerY = resources.displayMetrics.heightPixels / 2f - iv_explosion.height / 2f
+
+        val animX = ObjectAnimator.ofFloat(iv_explosion, "x", centerX)
+        val animY = ObjectAnimator.ofFloat(iv_explosion, "y", centerY)
+        val animScaleX = ObjectAnimator.ofFloat(iv_explosion, "scaleX", 12f)
+        val animScaleY = ObjectAnimator.ofFloat(iv_explosion, "scaleY", 12f)
+        val animAlphaOn = ObjectAnimator.ofFloat(iv_explosion, "alpha", 1f)
+        val animAlphaOff = ObjectAnimator.ofFloat(iv_explosion, "alpha", 0f)
+
+        animAlphaOn.addListener(onEnd = {
+            allClear()
+        })
+        animAlphaOff.addListener(onEnd = {
+            iv_explosion.translationX = 0f
+            iv_explosion.translationY = 0f
+            iv_explosion.scaleX = 0f
+            iv_explosion.scaleY = 0f
+        })
+
+        AnimatorSet().apply {
+            duration = 700
+            playTogether(animX, animY, animScaleX, animScaleY, animAlphaOn)
+            play(animAlphaOff).after(animAlphaOn)
+            start()
         }
 
     }

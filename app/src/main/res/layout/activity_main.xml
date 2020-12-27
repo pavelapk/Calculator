@@ -362,7 +362,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
-        android:background="@drawable/ic_screen"
+        android:background="@drawable/screen"
         app:layout_constraintDimensionRatio="H,366:100"
         app:layout_constraintEnd_toStartOf="@+id/right_guideline"
         app:layout_constraintHorizontal_bias="1.0"
@@ -423,5 +423,19 @@
         app:layout_constraintBottom_toBottomOf="@+id/tv_bg_numbers"
         app:layout_constraintEnd_toEndOf="@+id/tv_bg_numbers"
         app:layout_constraintTop_toTopOf="@+id/tv_bg_numbers" />
+
+    <ImageView
+        android:id="@+id/iv_explosion"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0"
+        android:contentDescription="Explosion"
+        android:scaleX="0"
+        android:scaleY="0"
+        app:layout_constraintBottom_toBottomOf="@+id/b_equally"
+        app:layout_constraintEnd_toEndOf="@+id/b_equally"
+        app:layout_constraintStart_toStartOf="@+id/b_equally"
+        app:layout_constraintTop_toTopOf="@+id/b_equally"
+        app:srcCompat="@drawable/explosion" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
