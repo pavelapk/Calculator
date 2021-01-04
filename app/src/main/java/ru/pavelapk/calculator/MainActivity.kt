@@ -6,26 +6,15 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.Group
 import androidx.core.animation.addListener
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.*
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        const val STATE_FIRST = 0
-        const val STATE_OPERATION = 1
-        const val STATE_SECOND = 2
-    }
+    private val logic = Calculator()
 
-    private lateinit var tvNumbers: TextView
-    private lateinit var ivExplosion: ImageView
-    private lateinit var decimalFormat: DecimalFormat
 
     private fun Group.setAllOnClickListener(listener: View.OnClickListener?) {
         referencedIds.forEach { id ->
@@ -37,165 +26,33 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Group>(R.id.groupDigits).setAllOnClickListener { v ->
-            onDigitClick(v as Button)
+
+        groupDigits.setAllOnClickListener { v ->
+            printOnScreen(logic.onDigitClick((v as Button).text))
         }
 
-        findViewById<Group>(R.id.groupOperations).setAllOnClickListener { v ->
-            onOperationClick(v as Button)
+        groupOperations.setAllOnClickListener { v ->
+            printOnScreen(logic.onOperationClick((v as Button).text))
         }
-
-        tvNumbers = findViewById(R.id.tv_numbers)
-        ivExplosion = findViewById(R.id.iv_explosion)
-
-        val otherSymbols = DecimalFormatSymbols(Locale.getDefault())
-        otherSymbols.decimalSeparator = '.'
-        decimalFormat = DecimalFormat("#.######", otherSymbols)
     }
 
 
-    private var firstNumber = 0.0
-    private var operation = 0.toChar()
-    private var secondNumber = 0.0
-    private var currentNumber = ""
-    private var isComma = false
-    private var state = STATE_FIRST
-
-    private fun onDigitClick(v: Button) {
-        if (currentNumber.length < 10) {
-            when (v.text) {
-                "," -> {
-                    if (!isComma) {
-                        currentNumber += "."
-                        isComma = true
-                    }
-                }
-                else -> {
-                    if (!(currentNumber == "0" && v.text == "0")) {
-                        currentNumber += v.text
-                    }
-                }
-            }
-            if (state == STATE_OPERATION) {
-                state = STATE_SECOND
-            }
-        }
-        tvNumbers.text = currentNumber
-    }
-
-    private fun clear() {
-        currentNumber = ""
-        isComma = false
-    }
-
-    private fun allClear() {
-        clear()
-        firstNumber = 0.0
-        secondNumber = 0.0
-        state = STATE_FIRST
-        tvNumbers.text = currentNumber
-    }
-
-    private fun chooseOperation(o: CharSequence) = when (o) {
-        "+" -> '+'
-        "-" -> '-'
-        "x" -> '*'
-        "÷" -> '/'
-        else -> 0.toChar()
-    }
-
-    private fun calculate() {
-        secondNumber = currentNumber.toDouble()
-        if (operation == '/' && secondNumber == 0.0) {
+    private fun printOnScreen(num: String?) {
+        if (num == null) {
             explode()
-            return
-        }
-
-        firstNumber = when (operation) {
-            '+' -> firstNumber + secondNumber
-            '-' -> firstNumber - secondNumber
-            '*' -> firstNumber * secondNumber
-            '/' -> firstNumber / secondNumber
-            else -> 0.0
-        }
-    }
-
-    private fun calculateWithPercent() {
-        secondNumber = currentNumber.toDouble() / 100.0
-        firstNumber = when (operation) {
-            '+' -> firstNumber * (1 + secondNumber)
-            '-' -> firstNumber * (1 - secondNumber)
-            '*' -> firstNumber * secondNumber
-            '/' -> firstNumber / secondNumber
-            else -> 0.0
-        }
-    }
-
-    private fun printNumWithOperation() {
-        tvNumbers.text = getString(R.string.concat, decimalFormat.format(firstNumber), operation)
-    }
-
-    private fun printNum() {
-        currentNumber = decimalFormat.format(firstNumber)
-        if (currentNumber.length > 10) {
-            clear()
-            tvNumbers.text = getString(R.string.error)
         } else {
-            tvNumbers.text = currentNumber
-        }
-    }
 
-    private fun onOperationClick(v: Button) {
-        when (v.text) {
-            "AC" -> allClear()
-            "+", "-", "x", "÷" -> {
-                when (state) {
-                    STATE_FIRST -> {
-                        operation = chooseOperation(v.text)
-                        if (currentNumber.isNotEmpty()) {
-                            firstNumber = currentNumber.toDouble()
-                            clear()
-                            printNumWithOperation()
-                            state = STATE_OPERATION
-                        }
-                    }
-                    STATE_OPERATION -> {
-                        operation = chooseOperation(v.text)
-                        printNumWithOperation()
-                    }
-                    STATE_SECOND -> {
-                        if (currentNumber.isNotEmpty()) {
-                            calculate()
-                            clear()
-                            operation = chooseOperation(v.text)
-                            printNumWithOperation()
-                            state = STATE_OPERATION
-                        }
-                    }
-                }
+            if (num.length > Calculator.MAX_LENGTH) {
+                tvNumbers.text = getString(R.string.trunc_num, num.take(Calculator.MAX_LENGTH - 2))
+            } else {
+                tvNumbers.text = num
             }
-            "=" -> {
-                if (currentNumber.isNotEmpty() && state == STATE_SECOND) {
-                    calculate()
-                    printNum()
-                    state = STATE_FIRST
-                }
-            }
-            "+/-" -> {
-                if (currentNumber.isNotEmpty()) {
-                    currentNumber = decimalFormat.format(-currentNumber.toDouble())
-                    tvNumbers.text = currentNumber
-                }
-            }
-            "%" -> {
-                if (currentNumber.isNotEmpty() && state == STATE_SECOND) {
-                    calculateWithPercent()
-                    printNum()
-                    state = STATE_FIRST
-                }
-            }
-        }
 
+            if (logic.getState() == State.STATE_OPERATION) {
+                tvNumbers.append(logic.getOperationStr())
+            }
+
+        }
     }
 
 
@@ -215,7 +72,8 @@ class MainActivity : AppCompatActivity() {
         val animAlphaOff = ObjectAnimator.ofFloat(ivExplosion, "alpha", 0f)
 
         animAlphaOn.addListener(onEnd = {
-            allClear()
+            logic.allClear()
+            tvNumbers.text = ""
         })
         animAlphaOff.addListener(onEnd = {
             ivExplosion.translationX = 0f
